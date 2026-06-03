@@ -1,75 +1,43 @@
 # llm-ai-multimodal
 
-AI 多模态文件转 Markdown 工具。将 `raw/` 目录下的文件完整转换为 Markdown，文字内容与原文件保持一致。
+AI 多模态文件转 Markdown 工具，支持 .pdf .docx .jpg .png .txt。
 
-## 支持格式
+## 使用案例
 
-| 格式 | 技能 | 处理方式 |
-|------|------|---------|
-| `.pdf` | pdf转md | pymupdf 提取文字层 → AI 格式化；扫描件自动转图片识别 |
-| `.jpg` / `.png` | 图片转md | AI 图片文字识别 |
-| `.docx` | word转md | python-docx 提取段落和表格 → AI 格式化 |
-| `.txt` | 文本转md | 自动检测编码读取 → AI 格式化 |
+> "帮我把 `raw/test` 所有文件转化为 md"
+> "把 `/Users/mac/ai/llm-ai/llm-ai-qingan/raw/一审` 所有文件全部转化为 md，生成后放到 `/Users/mac/ai/llm-ai/llm-ai-qingan/output/一审`"
 
 ## 目录结构
 
 ```
 llm-ai-multimodal/
-├── raw/                          # 放置待转换的原始文件
-├── output/                       # 转换结果（自动创建）
-├── prompts/                      # 提示词模板（四个技能共用）
-│   ├── system.md
-│   ├── image_to_md.md
-│   └── text_to_md.md
-├── skills/                       # 每种格式独立一个技能
+├── raw/                    # 待转换的原始文件
+├── output/                 # 转换结果 + output.log 日志
+├── prompts/                # Claude 规划层（识别意图、制定计划）
+├── skills/
+│   ├── api提示词/          # 技能脚本调用 AI API 时使用的提示词
+│   ├── 批量转换/           # 调度：扫描目录、分发格式、断点续传
 │   ├── pdf转md/
-│   │   ├── SKILL.md
-│   │   └── scripts/pdf_to_md.py
 │   ├── 图片转md/
-│   │   ├── SKILL.md
-│   │   └── scripts/img_to_md.py
 │   ├── word转md/
-│   │   ├── SKILL.md
-│   │   └── scripts/word_to_md.py
 │   └── 文本转md/
-│       ├── SKILL.md
-│       └── scripts/txt_to_md.py
 └── requirements.txt
 ```
 
-## 快速开始
+## 安装与运行
 
 ```bash
-# 第一步：安装依赖
 pip install -r requirements.txt
 
-# 第二步：设置 API 密钥
-export ANTHROPIC_API_KEY=sk-ant-...
+# 批量转换（自动推导输出目录）
+python3 skills/批量转换/scripts/convert.py raw/test
 
-# 转换 PDF
-python3 skills/pdf转md/scripts/pdf_to_md.py
+# 转换外部项目目录
+python3 skills/批量转换/scripts/convert.py /绝对路径/raw/一审
 
-# 转换图片
-python3 skills/图片转md/scripts/img_to_md.py
+# 中断后继续（断点续传，无需额外参数）
+python3 skills/批量转换/scripts/convert.py raw/test
 
-# 转换 Word
-python3 skills/word转md/scripts/word_to_md.py
-
-# 转换纯文本
-python3 skills/文本转md/scripts/txt_to_md.py
-
-# 只转换单个文件
-python3 skills/pdf转md/scripts/pdf_to_md.py --file raw/test/测试文件.pdf
-
-# 强制覆盖已存在的输出文件
-python3 skills/pdf转md/scripts/pdf_to_md.py --force
-```
-
-## 输出
-
-每个输入文件在 `output/` 目录下生成同名的 `.md` 文件：
-
-```
-raw/test/测试文件.pdf   →  output/test/测试文件.md
-raw/test/测试文件.jpg   →  output/test/测试文件.md
+# 强制重新转换
+python3 skills/批量转换/scripts/convert.py raw/test --force
 ```

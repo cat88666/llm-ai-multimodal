@@ -4,7 +4,7 @@ Word 转 Markdown（支持 .docx）
 
 python-docx 提取段落和表格 → AI 格式化 → Markdown
 
-用法：
+独立运行：
   python3 skills/word转md/scripts/word_to_md.py
   python3 skills/word转md/scripts/word_to_md.py --file raw/test/测试文件.docx
   python3 skills/word转md/scripts/word_to_md.py --force
@@ -19,21 +19,21 @@ from pathlib import Path
 import anthropic
 
 # ── 路径 ──────────────────────────────────────────────────
-REPO_ROOT  = Path(__file__).parent.parent.parent.parent
-RAW_DIR    = REPO_ROOT / "raw"
-OUT_DIR    = REPO_ROOT / "output"
-PROMPT_DIR = REPO_ROOT / "prompts"
+TOOL_ROOT  = Path(__file__).parent.parent.parent.parent
+RAW_DIR    = TOOL_ROOT / "raw"
+OUT_DIR    = TOOL_ROOT / "output"
+PROMPT_DIR = TOOL_ROOT / "skills" / "api提示词"
 
-# ── 模型 ──────────────────────────────────────────────────
 模型 = "claude-haiku-4-5-20251001"
 
-# ── 提示词 ────────────────────────────────────────────────
-系统提示词 = (PROMPT_DIR / "system.md").read_text(encoding="utf-8")
+系统提示词    = (PROMPT_DIR / "system.md").read_text(encoding="utf-8")
 文字提示词模板 = (PROMPT_DIR / "text_to_md.md").read_text(encoding="utf-8")
 
 
+# ── 核心提取 ──────────────────────────────────────────────
+
 def 提取Word内容(文件路径: Path) -> str:
-    """提取 docx 的段落与表格，保留文档结构。"""
+    """提取段落与表格，保留文档结构。"""
     import docx
     文档 = docx.Document(str(文件路径))
     内容列表 = []
@@ -67,31 +67,26 @@ def 调用文字格式化(客户端: anthropic.Anthropic, 内容: str) -> str:
     return 响应.content[0].text.strip()
 
 
-def 转换文件(客户端: anthropic.Anthropic, 源文件: Path, 强制覆盖: bool = False) -> bool:
-    相对路径 = 源文件.relative_to(RAW_DIR)
-    目标文件 = OUT_DIR / 相对路径.with_suffix(".md")
+# ── 对外接口（供 convert.py 调用）────────────────────────
 
-    if 目标文件.exists() and not 强制覆盖:
-        return False
-
-    目标文件.parent.mkdir(parents=True, exist_ok=True)
-
+def 转换单文件(客户端: anthropic.Anthropic, 源文件: Path, 目标文件: Path) -> bool:
+    """转换单个 Word 文件。目标文件父目录由调用方负责创建。"""
     try:
         文字内容 = 提取Word内容(源文件)
         md内容 = 调用文字格式化(客户端, 文字内容)
         目标文件.write_text(md内容, encoding="utf-8")
         return True
-
     except Exception as 错误:
-        print(f"    ✗ 失败：{错误}")
         目标文件.write_text(f"**转换失败**：{错误}\n", encoding="utf-8")
-        return False
+        raise
 
+
+# ── 独立运行入口 ──────────────────────────────────────────
 
 def 收集文件(单文件: str = None) -> list[Path]:
     if 单文件:
         路径 = Path(单文件)
-        return [路径 if 路径.is_absolute() else REPO_ROOT / 单文件]
+        return [路径 if 路径.is_absolute() else TOOL_ROOT / 单文件]
     return [
         文件 for 文件 in sorted(RAW_DIR.rglob("*.docx"))
         if 文件.is_file() and "output" not in 文件.parts
@@ -112,19 +107,27 @@ def main():
     客户端 = anthropic.Anthropic(api_key=密钥)
     文件列表 = 收集文件(参数.file)
     总数 = len(文件列表)
-    print(f"共 {总数} 个 Word 文件待处理，输出到 output/\n")
+    print(f"共 {总数} 个 Word 文件待处理\n")
 
     完成数 = 跳过数 = 0
     for i, 文件 in enumerate(文件列表, 1):
-        print(f"[{i}/{总数}] {文件.relative_to(REPO_ROOT)}")
-        结果 = 转换文件(客户端, 文件, 参数.force)
-        if 结果:
+        相对路径 = 文件.relative_to(RAW_DIR)
+        目标文件 = OUT_DIR / 相对路径.with_suffix(".md")
+        print(f"[{i}/{总数}] {文件.relative_to(TOOL_ROOT)}")
+
+        if 目标文件.exists() and not 参数.force:
+            跳过数 += 1
+            print("    - 跳过（已存在）")
+            continue
+
+        目标文件.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            转换单文件(客户端, 文件, 目标文件)
             完成数 += 1
             print("    ✓")
             time.sleep(0.3)
-        else:
-            跳过数 += 1
-            print("    - 跳过（已存在）")
+        except Exception as 错误:
+            print(f"    ✗ 失败：{错误}")
 
     print(f"\n完成 {完成数}，跳过 {跳过数}，共 {总数}")
 
