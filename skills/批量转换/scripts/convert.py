@@ -117,10 +117,24 @@ def 推导输出目录(输入目录: Path) -> Path:
 
 # ── 主转换流程 ────────────────────────────────────────────
 
-def 执行转换(输入目录: Path, 输出目录: Path, 强制覆盖: bool, 记录器: logging.Logger):
+def 读取密钥() -> str:
+    """优先读环境变量，其次读项目根目录的 .env 文件。"""
     密钥 = os.environ.get("ANTHROPIC_API_KEY", "")
+    if 密钥:
+        return 密钥
+    env文件 = TOOL_ROOT / ".env"
+    if env文件.exists():
+        for 行 in env文件.read_text(encoding="utf-8").splitlines():
+            行 = 行.strip()
+            if 行.startswith("ANTHROPIC_API_KEY="):
+                return 行.split("=", 1)[1].strip()
+    return ""
+
+
+def 执行转换(输入目录: Path, 输出目录: Path, 强制覆盖: bool, 记录器: logging.Logger):
+    密钥 = 读取密钥()
     if not 密钥:
-        记录器.error("错误：请先设置 ANTHROPIC_API_KEY 环境变量")
+        记录器.error("错误：未找到 ANTHROPIC_API_KEY，请在项目根目录创建 .env 文件并写入：ANTHROPIC_API_KEY=sk-ant-...")
         sys.exit(1)
 
     客户端 = anthropic.Anthropic(api_key=密钥)

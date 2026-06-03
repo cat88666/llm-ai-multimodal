@@ -1,4 +1,11 @@
-anthropic>=0.40.0
-Pillow>=10.0.0
-pymupdf>=1.24.0
-python-docx>=1.1.0
+# 文字类转换（无需 AI）
+pymupdf>=1.24.0        # PDF 文字提取 / 扫描件渲染
+mammoth>=1.6.0         # docx → md，高质量格式保留
+
+# 图片/扫描件 OCR（本地，无需 API Key）
+pytesseract>=0.3.10    # tesseract Python 接口
+Pillow>=10.0.0         # 图片处理
+
+# 系统依赖（brew install）
+# tesseract          - OCR 引擎本体
+# tesseract-lang     - 中文语言包（chi_sim）

@@ -123,15 +123,25 @@ def 收集文件(单文件: str = None) -> list[Path]:
     ]
 
 
+
+def 读取密钥() -> str:
+    env文件 = TOOL_ROOT / ".env"
+    if env文件.exists():
+        for 行 in env文件.read_text(encoding="utf-8").splitlines():
+            行 = 行.strip()
+            if 行.startswith("ANTHROPIC_API_KEY="):
+                return 行.split("=", 1)[1].strip()
+    return ""
+
 def main():
     解析器 = argparse.ArgumentParser(description="PDF 转 Markdown")
     解析器.add_argument("--file",  help="只处理单个文件")
     解析器.add_argument("--force", action="store_true", help="强制覆盖已存在的输出文件")
     参数 = 解析器.parse_args()
 
-    密钥 = os.environ.get("ANTHROPIC_API_KEY", "")
+    密钥 = os.environ.get("ANTHROPIC_API_KEY", "") or 读取密钥()
     if not 密钥:
-        print("错误：请先设置 ANTHROPIC_API_KEY 环境变量")
+        print("错误：未找到 ANTHROPIC_API_KEY，请在项目根目录创建 .env 文件")
         sys.exit(1)
 
     客户端 = anthropic.Anthropic(api_key=密钥)
