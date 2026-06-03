@@ -4,7 +4,7 @@ PDF 转 Markdown
 文字层：pymupdf 直接提取，无需 AI。
 扫描件：pymupdf 渲染 + tesseract OCR，无需 API Key。
 """
-import argparse
+import argparse, tempfile
 from pathlib import Path
 
 TOOL_ROOT = Path(__file__).parent.parent.parent.parent
@@ -27,15 +27,16 @@ def 提取文字层(文件路径: Path) -> str | None:
 
 def 扫描件OCR(文件路径: Path) -> str:
     import fitz, pytesseract
-    from PIL import Image
     文档 = fitz.open(str(文件路径))
     页面列表 = []
-    for i, 页 in enumerate(文档):
-        像素图 = 页.get_pixmap(dpi=150)
-        图片 = Image.frombytes("RGB", [像素图.width, 像素图.height], 像素图.samples)
-        文字 = pytesseract.image_to_string(图片, lang="chi_sim+eng").strip()
-        if 文字:
-            页面列表.append(f"<!-- 第{i+1}页 -->\n{文字}")
+    with tempfile.TemporaryDirectory() as 临时目录:
+        for i, 页 in enumerate(文档):
+            像素图 = 页.get_pixmap(dpi=150)
+            临时图片 = Path(临时目录) / f"page_{i+1}.jpg"
+            像素图.save(str(临时图片))
+            文字 = pytesseract.image_to_string(str(临时图片), lang="chi_sim+eng").strip()
+            if 文字:
+                页面列表.append(f"<!-- 第{i+1}页 -->\n{文字}")
     文档.close()
     return "\n\n---\n\n".join(页面列表)
 

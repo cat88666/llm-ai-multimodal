@@ -127,10 +127,24 @@ def 执行转换(输入目录: Path, 输出目录: Path, 强制覆盖: bool, 记
         记录器.info(f"共 {总数} 个文件待处理")
     记录器.info("-" * 55)
 
+    # 预扫描：检测同目录下同名（不同扩展名）冲突
+    md路径计数: dict[Path, int] = {}
+    for f in 文件列表:
+        k = 输出目录 / f.relative_to(输入目录).with_suffix(".md")
+        md路径计数[k] = md路径计数.get(k, 0) + 1
+
+    def 目标路径(源文件: Path) -> Path:
+        相对 = 源文件.relative_to(输入目录)
+        默认 = 输出目录 / 相对.with_suffix(".md")
+        if md路径计数.get(默认, 0) > 1:
+            # 冲突时保留原扩展名：名称.原扩展名.md
+            return 输出目录 / 相对.parent / (相对.stem + 源文件.suffix + ".md")
+        return 默认
+
     完成数 = 失败数 = 0
     for i, 源文件 in enumerate(待处理文件, 1):
         后缀 = 源文件.suffix.lower()
-        目标文件 = 输出目录 / 源文件.relative_to(输入目录).with_suffix(".md")
+        目标文件 = 目标路径(源文件)
         前缀 = f"[{已跳过数 + i}/{总数}][{格式标签[后缀]}] {源文件.name}"
         目标文件.parent.mkdir(parents=True, exist_ok=True)
         try:

@@ -14,9 +14,7 @@ OUT_DIR   = TOOL_ROOT / "output"
 
 def 转换单文件(源文件: Path, 目标文件: Path) -> bool:
     import pytesseract
-    from PIL import Image
-    图片 = Image.open(str(源文件))
-    文字 = pytesseract.image_to_string(图片, lang="chi_sim+eng").strip()
+    文字 = pytesseract.image_to_string(str(源文件), lang="chi_sim+eng").strip()
     目标文件.write_text(文字, encoding="utf-8")
     return True
 
