@@ -5,7 +5,7 @@ AI 多模态文件转 Markdown 工具，支持 .pdf .docx .jpg .png .txt。
 ## 使用案例
 
 > "帮我把 `raw/test` 所有文件转化为 md"
-> "把 `/Users/mac/ai/llm-ai/llm-ai-qingan/raw/一审` 所有文件全部转化为 md，生成后放到 `/Users/mac/ai/llm-ai/llm-ai-qingan/output/一审`"
+> "把 `/项目路径/raw/test` 所有文件全部转化为 md，生成后放到 `/项目路径/output/test`"
 
 ## 目录结构
 
@@ -33,7 +33,7 @@ pip install -r requirements.txt
 python3 skills/批量转换/scripts/convert.py raw/test
 
 # 转换外部项目目录
-python3 skills/批量转换/scripts/convert.py /绝对路径/raw/一审
+python3 skills/批量转换/scripts/convert.py /绝对路径/raw/test
 
 # 中断后继续（断点续传，无需额外参数）
 python3 skills/批量转换/scripts/convert.py raw/test

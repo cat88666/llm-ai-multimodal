@@ -10,13 +10,13 @@
 
 用法：
   python3 skills/批量转换/scripts/convert.py raw/test
-  python3 skills/批量转换/scripts/convert.py /Users/mac/ai/llm-ai/llm-ai-qingan/raw/一审
+  python3 skills/批量转换/scripts/convert.py /项目路径/raw/test
   python3 skills/批量转换/scripts/convert.py raw/test --force
   python3 skills/批量转换/scripts/convert.py raw/test --output /自定义/输出目录
 
 输出目录推导规则（未指定 --output 时）：
   raw/test                            →  <本项目>/output/test
-  /path/to/其他项目/raw/一审           →  /path/to/其他项目/output/一审
+  /path/to/其他项目/raw/test           →  /path/to/其他项目/output/test
 """
 
 import argparse

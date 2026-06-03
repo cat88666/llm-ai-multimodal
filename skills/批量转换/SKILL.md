@@ -18,7 +18,7 @@ user-invocable: true
 
 **路径识别规则：**
 - 相对路径（如 `raw/test`）：以本工具根目录为基准
-- 绝对路径（如 `/Users/mac/ai/llm-ai/llm-ai-qingan/raw/一审`）：直接使用
+- 绝对路径（如 `/项目路径/raw/test`）：直接使用
 
 ---
 
@@ -83,8 +83,8 @@ python3 skills/批量转换/scripts/convert.py <路径> --force
 |---------|----------------|
 | `raw/test` | `<本工具目录>/output/test` |
 | `raw/test/子目录` | `<本工具目录>/output/test/子目录` |
-| `/path/to/其他项目/raw/一审` | `/path/to/其他项目/output/一审` |
-| `/path/to/其他项目/raw/二审` | `/path/to/其他项目/output/二审` |
+| `/path/to/其他项目/raw/test` | `/path/to/其他项目/output/test` |
+| `/path/to/其他项目/raw/test2` | `/path/to/其他项目/output/test2` |
 
 ---
 
@@ -94,8 +94,8 @@ python3 skills/批量转换/scripts/convert.py <路径> --force
 
 ```
 [2026-06-03 14:30:01] =======================================================
-[2026-06-03 14:30:01] 输入目录：/Users/mac/.../raw/test
-[2026-06-03 14:30:01] 输出目录：/Users/mac/.../output/test
+[2026-06-03 14:30:01] 输入目录：/项目路径/raw/test
+[2026-06-03 14:30:01] 输出目录：/项目路径/output/test
 [2026-06-03 14:30:01] 共 5 个文件待处理
 [2026-06-03 14:30:01] -------------------------------------------------------
 [2026-06-03 14:30:02] [1/5][PDF ] 测试文件.pdf → 成功 | /绝对路径/测试文件.pdf
